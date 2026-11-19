@@ -6,7 +6,7 @@ from sentence_transformers import SentenceTransformer
 
 def load_pdf(pdf_path):
   reader = PDFReader(str(pdf_path))
-  mypages = [i.extract_text() or ""fori in reader.pages]
+  mypages = [i.extract_text() or "" fori in reader.pages]
   full_text = "\n".join(mypages).strip()
   if not fuii_text:
     raise valueError("No readable Text Found")
