@@ -1,14 +1,11 @@
-import faiss  # Used for similarity search.
-import numpy as np  # Used for numerical operations.
-from groq import Groq  # Connects to Groq LLM.
-from pypdf import PdfReader  # Reads PDF files.
-from sentence_transformers import SentenceTransformer  # Generates text embeddings.
-
-
-# 1. LOAD PDF
+import faiss  
+import numpy as np  
+from groq import Groq  
+from pypdf import PdfReader
+from sentence_transformers import SentenceTransformer
 def load_pdf(pdf_path):
-    reader = PdfReader(str(pdf_path))  # Opens the PDF file.
-    pages = [page.extract_text() or "" for page in reader.pages]  # Extracts text from every page.
+    reader = PdfReader(str(pdf_path))  
+    pages = [page.extract_text() or "" for page in reader.pages]  
     full_text = "\n".join(pages).strip()  # Combines all page texts into one string.
 
     if not full_text:  # Checks whether PDF contains readable text.
