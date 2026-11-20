@@ -6,21 +6,20 @@ from sentence_transformers import SentenceTransformer
 def load_pdf(pdf_path):
     reader = PdfReader(str(pdf_path))  
     pages = [page.extract_text() or "" for page in reader.pages]  
-    full_text = "\n".join(pages).strip()  # Combines all page texts into one string.
+    full_text = "\n".join(pages).strip()  
 
-    if not full_text:  # Checks whether PDF contains readable text.
+    if not full_text:  
         raise ValueError("No readable text found")
 
-    return full_text  # Returns the extracted PDF text.
+    return full_text 
 
 
-# 2. CREATE CHUNKS
 def create_chunks(full_text, chunk_size=500, overlap=100):
-    chunks = []  # Creates an empty list to store chunks.
-    start = 0  # Initializes the starting position.
+    chunks = [] 
+    start = 0  
 
-    while start < len(full_text):  # Loops until the complete text is processed.
-        end = start + chunk_size  # Calculates the ending position.
+    while start < len(full_text):  
+        end = start + chunk_size  
         chunk = full_text[start:end]  # Extracts a portion of text.
 
         if chunk.strip():  # Checks whether the chunk is not empty.
