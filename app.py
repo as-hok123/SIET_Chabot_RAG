@@ -35,5 +35,5 @@ if question:
 
 if st.button("Cler chat"):
   st.session_state.chat_hist = []
-  st.return() 
+  st.rerun() 
                          
