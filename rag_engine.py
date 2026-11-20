@@ -1,73 +1,39 @@
-import faiss  
-import numpy as np  
-from groq import Groq  
-from pypdf import PDFReader
-from sentence_transformers import SentenceTransformers
+import streamlit as st
+from rag_engine import load_base, ask_rag
+st.set_page_config(page_title = "SIET_Chatbot", layout = "centered")
+st.title("Shridevi Institute of Engineering and Technology - Chatbot")
+st.caption("Ask anythimg about the college information...")
+st.caption("created by J RISHAB BHARATHI")
 
-def load_pdf(pdf_path):
-    reader = PdfReader(str(pdf_path))  
-    mypages = [page.extract_text() or "" for page in reader.pages]  
-    full_text = "\n".join(pages).strip()  
+mykey = st.secrets["GROQ_API_KEY"]
 
-    if not full_text:  
-        raise ValueError("No readable text found")
+@st.cache_resource
+def initiate_rag():
+  return load_base("01_College_Information.pdf")
+index, embed_model, chunks = initiate_rag()
 
-    return full_text 
+if "chat_hist" not in st.session_state:
+  st.session_state.chat_hist = []
 
-
-def create_chunks(full_text, chunk_size=500, overlap=100):
-    chunks = [] 
-    start = 0  
-
-    while start < len(full_text):  
-        end = start + chunk_size  
-        chunk = full_text[start:end]  
-
-        if chunk.strip():
-            chunks.append(chunk) 
-        start = end - overlap  
-
-    return chunks 
+for qa in st.session_state.chat_hist :
+  with st.chat_message(qa["role"]):
+    st.write(qa["content"])
 
 
-def build_vectors(chunks, model_name="all-MiniLM-L6-v2"):
-    if not chunks: 
-        raise ValueError("Cannot apply embedding on empty chunks")
+question = st.chat_input("Ask anything SIET collage..... ")
 
-    embed_model = SentenceTransformer(model_name) 
-    embed_vectors = embed_model.encode(chunks, convert_to_numpy=True)  
-    embed_vectors = np.asarray(embed_vectors, dtype="float32") 
-    faiss.normalize_L2(embed_vectors)  
-    index = faiss.IndexFlatIP(embed_vectors.shape[1])  
-    index.add(embed_vectors) 
+if question:
+  st.session_state.chat_hist.append(
+    {"role" :"user" , "content" : question})
+  with st.chat_message("user"):
+    st.write(question)
+  with st.chat_message("assistant"):
+    with st.spinner("Asking RAG for answer........"):
+      answer = ask_rag (question, embed_model, chunks, index, api_key = mykey )
+      st.write(answer)
+      st.session_state.chat_hist.append(
+       {"role" :"assistant" , "content" : answer})
 
-    return embed_model, index  
-
-def load_base(pdf_path="01_College_Information.pdf"):
-    full_text = load_pdf(pdf_path) 
-    chunks = create_chunks(full_text) 
-    embed_model, index = build_vectors(chunks) 
-
-    return embed_model, chunks, index 
-
-
-
-def retrieve_content(question, embed_model, chunks, index, num_chunks=3):
-    if not question.strip(): 
-        raise ValueError("Question cannot be blank")
-
-    if num_chunks < 1:  
-        raise ValueError("Request at least one chunk")
-
-    query_vector = embed_model.encode([question], convert_to_numpy=True) 
-    query_vector = np.asarray(query_vector, dtype="float32") 
-    faiss.normalize_L2(query_vector) 
-
-    sim_scores, vec_indices = index.search(query_vector, min(num_chunks, len(chunks)))  
-
-    background = ""  
-
-    for i in vec_indices[0]:  
-        if i != -1:  
-            background += chunks[i] + "\n\n" 
-    return background 
+if st.button("Clear chat"):
+  st.session_state.chat_hist = []
+  st.rerun()
