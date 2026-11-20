@@ -29,8 +29,9 @@ if question:
    with st.chat_message("assistant"):
      with st.spinner("Asking RAG for answer...."):
       answer = ask_rag(question, embed_model, chunks, index, num_chunks, api_key=mykey)
-
-    st.write(answer)
+      st.write(answer)
+      st.session_state.chat_hist.append(
+         {"role" :"assistant" ,"content" : answer})
 
 if st.button("Cler chat"):
   st.session_state.chat_hist = []
