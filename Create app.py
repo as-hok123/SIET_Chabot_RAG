@@ -27,5 +27,11 @@ if question:
       st.write(question)
 
 with st.chat_message("assistant"):
-   with st.spinner("Asking RAG 
+   with st.spinner("Asking RAG for answer...."):
+    answer = ask_rag (question, embed_model, chunks, index, api_key = mykey , num_chunks)
+    st.write(answer)
+
+if st.button("Cler chat"):
+  st.session_state.chat_hist = []
+  st.return() 
                          
